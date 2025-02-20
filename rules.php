@@ -2,8 +2,10 @@
 require_once(__DIR__ . '/../../config.php');
 require_once($CFG->libdir . '/adminlib.php');
 require_once(__DIR__ . '/lib.php');
+use local_tenantassign\form\rules_form; // Use the correct namespace
 
-admin_externalpage_setup('local_tenantassign_rules');
+// Set up the external admin page.
+admin_externalpage_setup('local_tenantassign_rules'); // Ensure this matches the external page name in settings.php.
 
 $context = context_system::instance();
 require_capability('local/tenantassign:manage', $context);
@@ -25,7 +27,7 @@ if ($action === 'delete' && $id) {
 }
 
 // Display the form to add/edit rules.
-$mform = new local_tenantassign_rules_form();
+$mform = new rules_form();
 
 if ($mform->is_cancelled()) {
     redirect($PAGE->url);

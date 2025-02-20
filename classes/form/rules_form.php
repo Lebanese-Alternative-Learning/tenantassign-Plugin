@@ -1,9 +1,11 @@
 <?php
+namespace local_tenantassign\form;  // Use the correct namespace
+
 defined('MOODLE_INTERNAL') || die();
 
 require_once($CFG->libdir . '/formslib.php');
 
-class local_tenantassign_rules_form extends moodleform {
+class rules_form extends \moodleform {
     protected function definition() {
         $mform = $this->_form;
 
