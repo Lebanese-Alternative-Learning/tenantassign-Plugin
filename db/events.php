@@ -29,7 +29,7 @@ $observers = array(
 
     array(
         'eventname' => '\core\event\user_created',
-        'callback' => 'local_tenantassign_after_user_created',
-        'internal' => false,
+        'callback'  => 'local_tenantassign_after_user_created',
+        'internal'  => false,
     ),
 );

@@ -21,43 +21,63 @@ $action = optional_param('action', '', PARAM_ALPHA);
 $id = optional_param('id', 0, PARAM_INT);
 
 if ($action === 'delete' && $id) {
-    // Delete a rule.
-    $DB->delete_records('local_tenantassign_rules', ['id' => $id]);
-    redirect($PAGE->url, get_string('ruledeleted', 'local_tenantassign'));
+    try {
+        // Delete a rule.
+        $DB->delete_records('local_tenantassign_rules', ['id' => $id]);
+        error_log('Deleted rule with ID: ' . $id); // Log rule deletion
+        redirect($PAGE->url, get_string('ruledeleted', 'local_tenantassign'));
+    } catch (Exception $e) {
+        // Log any error during deletion
+        error_log("Failed to delete rule ID {$id}: " . $e->getMessage());
+    }
 }
 
 // Display the form to add/edit rules.
 $mform = new rules_form();
 
 if ($mform->is_cancelled()) {
+    error_log('Rule form cancelled'); // Log form cancellation
     redirect($PAGE->url);
 } elseif ($data = $mform->get_data()) {
-    // Save or update a rule.
-    $rule = new stdClass();
-    $rule->id = $data->id ?? 0;
-    $rule->domain = $data->domain;
-    $rule->tenantid = $data->tenantid;
+    try {
+        // Save or update a rule.
+        $rule = new stdClass();
+        $rule->id = $data->id ?? 0;
+        $rule->domain = $data->domain;
+        $rule->tenantid = $data->tenantid;
 
-    if ($rule->id) {
-        $DB->update_record('local_tenantassign_rules', $rule);
-    } else {
-        $DB->insert_record('local_tenantassign_rules', $rule);
+        if ($rule->id) {
+            $DB->update_record('local_tenantassign_rules', $rule);
+            error_log('Updated rule with ID: ' . $rule->id); // Log rule update
+        } else {
+            $DB->insert_record('local_tenantassign_rules', $rule);
+            error_log('Created new rule with domain: ' . $rule->domain); // Log rule creation
+        }
+        redirect($PAGE->url, get_string('rulesaved', 'local_tenantassign'));
+    } catch (Exception $e) {
+        // Log any error during save or update
+        error_log("Failed to save/update rule: " . $e->getMessage());
     }
-    redirect($PAGE->url, get_string('rulesaved', 'local_tenantassign'));
 }
 
 // Display the list of rules.
-$rules = $DB->get_records('local_tenantassign_rules');
-$table = new html_table();
-$table->head = [get_string('domain', 'local_tenantassign'), get_string('tenantid', 'local_tenantassign'), get_string('actions', 'local_tenantassign')];
-foreach ($rules as $rule) {
-    $editurl = new moodle_url($PAGE->url, ['action' => 'edit', 'id' => $rule->id]);
-    $deleteurl = new moodle_url($PAGE->url, ['action' => 'delete', 'id' => $rule->id]);
-    $actions = html_writer::link($editurl, get_string('edit')) . ' ' .
-               html_writer::link($deleteurl, get_string('delete'));
-    $table->data[] = [$rule->domain, $rule->tenantid, $actions];
+try {
+    $rules = $DB->get_records('local_tenantassign_rules');
+    $table = new html_table();
+    $table->head = [get_string('domain', 'local_tenantassign'), get_string('tenantid', 'local_tenantassign'), get_string('actions', 'local_tenantassign')];
+    foreach ($rules as $rule) {
+        $editurl = new moodle_url($PAGE->url, ['action' => 'edit', 'id' => $rule->id]);
+        $deleteurl = new moodle_url($PAGE->url, ['action' => 'delete', 'id' => $rule->id]);
+        $actions = html_writer::link($editurl, get_string('edit')) . ' ' .
+                   html_writer::link($deleteurl, get_string('delete'));
+        $table->data[] = [$rule->domain, $rule->tenantid, $actions];
+    }
+    echo html_writer::table($table);
+    error_log('Displayed rule list with ' . count($rules) . ' rules'); // Log rule display
+} catch (Exception $e) {
+    // Log any error during the fetching or display of rules
+    error_log("Failed to fetch/display rules: " . $e->getMessage());
 }
-echo html_writer::table($table);
 
 // Display the form.
 $mform->display();
