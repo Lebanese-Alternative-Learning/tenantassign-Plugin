@@ -7,8 +7,17 @@ defined('MOODLE_INTERNAL') || die();
 function local_tenantassign_after_user_created($event) {
     global $DB;
 
+    // Add a small delay to ensure the user record is committed to the database
+    sleep(1); // Delay for 1 second
+
+    // Check if userid is valid
+    if (empty($event->userid)) {
+        error_log('Invalid user ID in event: userid is 0');
+        return;
+    }
+
     // Fetch user record using the event's userid
-    $user = $event->get_record_snapshot('user', $event->userid);
+    $user = $DB->get_record('user', ['id' => $event->userid]);
     if ($user) {
         // Split email to extract domain
         $emailparts = explode('@', $user->email);
