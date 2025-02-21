@@ -27,6 +27,6 @@
  *
  * @param object $event The event object.
  */
-function local_emailtenant_after_user_created($event) {
+function local_tenantassign_after_user_created($event) {
     return;
 }
